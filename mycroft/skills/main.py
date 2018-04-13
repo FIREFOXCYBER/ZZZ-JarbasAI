@@ -472,10 +472,6 @@ class SkillManager(Thread):
                     has_loaded = True
                     self.ws.emit(Message('mycroft.skills.initialized'))
 
-            # remember the date of the last modified skill
-            modified_dates = map(lambda x: x.get("last_modified"),
-                                 self.loaded_skills.values())
-
             # Pause briefly before beginning next scan
             time.sleep(2)
 
