@@ -247,6 +247,8 @@ class SkillManager(Thread):
         # Update upon request
         ws.on('skillmanager.update', self.schedule_now)
         ws.on('skillmanager.list', self.send_skill_list)
+        ws.on('skillmanager.deactivate', self.deactivate_skill)
+        ws.on('skillmanager.activate', self.activate_skill)
 
         # Register handlers for external MSM signals
         ws.on('msm.updating', self.block_msm)
@@ -489,6 +491,24 @@ class SkillManager(Thread):
             self.ws.emit(Message('mycroft.skills.list', data=info))
         except Exception as e:
             LOG.exception(e)
+
+    def deactivate_skill(self, message):
+        try:
+            skill = message.data['skill']
+            if skill in self.loaded_skills:
+                self.loaded_skills[skill]['active'] = False
+                self.loaded_skills[skill]['instance']._shutdown()
+        except Exception as e:
+            LOG.error('Couldn\'t deactivate skill, {}'.format(repr(e)))
+
+    def activate_skill(self, message):
+        try:
+            skill = message.data['skill']
+            if not self.loaded_skills[skill].get('active', True):
+                self.loaded_skills[skill]['loaded'] = False
+                self.loaded_skills[skill]['active'] = True
+        except:
+            LOG.error('Couldn\'t activate skill, {}'.format(repr(e)))
 
     def wait_loaded_priority(self):
         """ Block until all priority skills have loaded """
